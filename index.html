@@ -265,6 +265,49 @@
       margin-bottom:16px;
     }
 
+        .filters-box{
+      padding:16px 18px;
+      border-radius:20px;
+      background:rgba(255,255,255,.035);
+      border:1px solid var(--line);
+      margin-bottom:16px;
+    }
+
+    .filters-title{
+      margin:0 0 12px;
+      font-size:16px;
+      font-weight:800;
+    }
+
+    .filter-list{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:12px;
+    }
+
+    .filter-item{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:16px;
+      padding:12px 14px;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+    }
+
+    .filter-copy h4{
+      margin:0 0 4px;
+      font-size:14px;
+    }
+
+    .filter-copy p{
+      margin:0;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.45;
+    }
+    
     .toggle-copy h3{margin:0 0 4px;font-size:16px}
     .toggle-copy p{margin:0;color:var(--muted);font-size:13px;line-height:1.5}
 
@@ -519,6 +562,45 @@
               </label>
             </div>
 
+            <div class="filters-box">
+              <div class="filters-title">Signal Filters</div>
+
+              <div class="filter-list">
+                <div class="filter-item">
+                  <div class="filter-copy">
+                    <h4>Trader Timezone Filter</h4>
+                    <p>Remove signals by configured timezone danger levels.</p>
+                  </div>
+                  <label class="switch">
+                    <input type="checkbox" data-filter-timezone="${bot.key}">
+                    <span class="slider"></span>
+                  </label>
+                </div>
+
+                <div class="filter-item">
+                  <div class="filter-copy">
+                    <h4>News Filter</h4>
+                    <p>Remove signals near configured news events.</p>
+                  </div>
+                  <label class="switch">
+                    <input type="checkbox" data-filter-news="${bot.key}">
+                    <span class="slider"></span>
+                  </label>
+                </div>
+
+                <div class="filter-item">
+                  <div class="filter-copy">
+                    <h4>EMA Trend Filter</h4>
+                    <p>Apply trend filtering before Telegram send.</p>
+                  </div>
+                  <label class="switch">
+                    <input type="checkbox" data-filter-trend="${bot.key}">
+                    <span class="slider"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            
             <div class="stats-grid">
               <div class="stat">
                 <div class="label">Last Runtime</div>
@@ -582,7 +664,10 @@
         `[data-ping="${key}"]`,
         `[data-on="${key}"]`,
         `[data-off="${key}"]`,
-        `[data-toggle="${key}"]`
+        `[data-toggle="${key}"]`,
+        `[data-filter-timezone="${key}"]`,
+        `[data-filter-news="${key}"]`,
+        `[data-filter-trend="${key}"]`
       ];
       selectors.forEach(sel => {
         const el = document.querySelector(sel);
@@ -605,6 +690,14 @@
       const toggle = document.querySelector(`[data-toggle="${bot.key}"]`);
 
       toggle.checked = enabled;
+            const filters = data.filters || {};
+      const timezoneToggle = document.querySelector(`[data-filter-timezone="${bot.key}"]`);
+      const newsToggle = document.querySelector(`[data-filter-news="${bot.key}"]`);
+      const trendToggle = document.querySelector(`[data-filter-trend="${bot.key}"]`);
+
+      if (timezoneToggle) timezoneToggle.checked = filters?.timezone?.enabled === true;
+      if (newsToggle) newsToggle.checked = filters?.news?.enabled === true;
+      if (trendToggle) trendToggle.checked = filters?.trend?.enabled === true;
 
       if (enabled) {
         pill.className = "pill online";
@@ -654,6 +747,13 @@
       pill.textContent = "UNKNOWN";
       dot.className = "dot unknown";
       st.textContent = "Unknown";
+            const timezoneToggle = document.querySelector(`[data-filter-timezone="${bot.key}"]`);
+      const newsToggle = document.querySelector(`[data-filter-news="${bot.key}"]`);
+      const trendToggle = document.querySelector(`[data-filter-trend="${bot.key}"]`);
+
+      if (timezoneToggle) timezoneToggle.checked = false;
+      if (newsToggle) newsToggle.checked = false;
+      if (trendToggle) trendToggle.checked = false;
       meta.textContent = message || "Request failed";
     }
 
@@ -690,6 +790,31 @@
         await fetchMeta(bot);
       } catch (err) {
         log(bot.key, `Switch failed: ${err.message || String(err)}`);
+        applyUnknown(bot, err.message || String(err));
+      } finally {
+        setBusy(bot.key, false);
+      }
+    }
+
+        async function setFilter(bot, filterKey, enabled) {
+      setBusy(bot.key, true);
+      try {
+        const res = await fetch(`${bot.url}/filters`, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            "accept": "application/json"
+          },
+          body: JSON.stringify({
+            [filterKey]: { enabled }
+          })
+        });
+        const data = await safeJson(res);
+        if (!res.ok) throw new Error(data.error || data.raw || `HTTP ${res.status}`);
+        log(bot.key, `${filterKey} filter ${enabled ? "enabled" : "disabled"}.`);
+        await fetchMeta(bot);
+      } catch (err) {
+        log(bot.key, `Filter update failed: ${err.message || String(err)}`);
         applyUnknown(bot, err.message || String(err));
       } finally {
         setBusy(bot.key, false);
@@ -733,6 +858,9 @@
       document.querySelector(`[data-on="${bot.key}"]`).addEventListener("click", () => setBot(bot, true));
       document.querySelector(`[data-off="${bot.key}"]`).addEventListener("click", () => setBot(bot, false));
       document.querySelector(`[data-toggle="${bot.key}"]`).addEventListener("change", (e) => setBot(bot, e.target.checked));
+            document.querySelector(`[data-filter-timezone="${bot.key}"]`).addEventListener("change", (e) => setFilter(bot, "timezone", e.target.checked));
+      document.querySelector(`[data-filter-news="${bot.key}"]`).addEventListener("change", (e) => setFilter(bot, "news", e.target.checked));
+      document.querySelector(`[data-filter-trend="${bot.key}"]`).addEventListener("change", (e) => setFilter(bot, "trend", e.target.checked));
     });
 
     async function refreshAll() {
