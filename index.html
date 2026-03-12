@@ -3,133 +3,467 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bot Control Panel</title>
+  <title>LiveBot Control</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #0f172a;
-      color: #e2e8f0;
-      margin: 0;
-      padding: 24px;
+    :root{
+      --bg:#07111f;
+      --bg2:#0b1220;
+      --panel:rgba(255,255,255,.08);
+      --panel-2:rgba(255,255,255,.06);
+      --stroke:rgba(255,255,255,.12);
+      --text:#e6eef8;
+      --muted:#8ea3b7;
+      --green:#22c55e;
+      --red:#ef4444;
+      --blue:#3b82f6;
+      --amber:#f59e0b;
+      --shadow:0 10px 40px rgba(0,0,0,.35);
+      --blur:18px;
+      --radius:24px;
     }
 
-    .wrap {
-      max-width: 760px;
-      margin: 0 auto;
+    *{box-sizing:border-box}
+    html,body{height:100%}
+
+    body{
+      margin:0;
+      font-family:"Inter",system-ui,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 10% 20%, rgba(59,130,246,.20), transparent 26%),
+        radial-gradient(circle at 85% 15%, rgba(34,197,94,.14), transparent 22%),
+        radial-gradient(circle at 80% 80%, rgba(168,85,247,.16), transparent 24%),
+        linear-gradient(135deg, #050b14 0%, #0a1020 45%, #0a1424 100%);
+      overflow-x:hidden;
     }
 
-    h1 {
-      margin-bottom: 8px;
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background:
+        linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+      background-size:32px 32px;
+      mask-image:linear-gradient(to bottom, rgba(0,0,0,.55), transparent);
     }
 
-    p {
-      color: #94a3b8;
+    .app{
+      width:min(1200px, calc(100% - 32px));
+      margin:32px auto;
     }
 
-    .card {
-      background: #111827;
-      border: 1px solid #334155;
-      border-radius: 12px;
-      padding: 18px;
-      margin-top: 18px;
+    .hero{
+      position:relative;
+      overflow:hidden;
+      border:1px solid var(--stroke);
+      background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05));
+      backdrop-filter:blur(var(--blur));
+      -webkit-backdrop-filter:blur(var(--blur));
+      border-radius:32px;
+      box-shadow:var(--shadow);
+      padding:28px 28px 24px;
     }
 
-    .row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-top: 12px;
+    .hero::after{
+      content:"";
+      position:absolute;
+      width:320px;
+      height:320px;
+      right:-80px;
+      top:-120px;
+      background:radial-gradient(circle, rgba(59,130,246,.30), transparent 60%);
+      pointer-events:none;
     }
 
-    button {
-      border: 0;
-      border-radius: 10px;
-      padding: 12px 16px;
-      font-size: 14px;
-      cursor: pointer;
-      color: white;
+    .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:8px 12px;
+      border-radius:999px;
+      background:rgba(255,255,255,.07);
+      border:1px solid rgba(255,255,255,.10);
+      color:#c7d7e8;
+      font-size:12px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
     }
 
-    .green { background: #16a34a; }
-    .red { background: #dc2626; }
-    .blue { background: #2563eb; }
-    .gray { background: #475569; }
-
-    pre {
-      background: #020617;
-      color: #cbd5e1;
-      padding: 14px;
-      border-radius: 10px;
-      overflow: auto;
-      font-size: 13px;
-      white-space: pre-wrap;
-      word-break: break-word;
+    .dot{
+      width:8px;
+      height:8px;
+      border-radius:999px;
+      background:#22c55e;
+      box-shadow:0 0 18px #22c55e;
     }
 
-    .status-box {
-      margin-top: 12px;
-      padding: 12px;
-      border-radius: 10px;
-      background: #1e293b;
-      border: 1px solid #334155;
+    h1{
+      margin:18px 0 10px;
+      font-size:clamp(34px, 5vw, 56px);
+      line-height:1;
+      letter-spacing:-.04em;
     }
 
-    .ok { color: #22c55e; }
-    .bad { color: #ef4444; }
+    .sub{
+      margin:0;
+      max-width:760px;
+      color:var(--muted);
+      font-size:15px;
+      line-height:1.7;
+    }
+
+    .hero-grid{
+      display:grid;
+      grid-template-columns:1.4fr .9fr;
+      gap:18px;
+      margin-top:24px;
+    }
+
+    .glass{
+      border:1px solid var(--stroke);
+      background:linear-gradient(180deg, var(--panel), var(--panel-2));
+      backdrop-filter:blur(var(--blur));
+      -webkit-backdrop-filter:blur(var(--blur));
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+
+    .hero-stat{
+      padding:18px;
+      min-height:150px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+    }
+
+    .hero-stat-label{
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .hero-stat-value{
+      font-size:40px;
+      font-weight:800;
+      letter-spacing:-.04em;
+    }
+
+    .hero-stat-mini{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      border-radius:999px;
+      padding:8px 12px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.05);
+      color:#d9e6f3;
+      font-size:12px;
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns:1.15fr .85fr;
+      gap:18px;
+      margin-top:18px;
+    }
+
+    .stack{
+      display:grid;
+      gap:18px;
+    }
+
+    .card{
+      padding:20px;
+    }
+
+    .card h2{
+      margin:0 0 6px;
+      font-size:18px;
+      letter-spacing:-.02em;
+    }
+
+    .meta{
+      margin:0 0 16px;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .controls{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0,1fr));
+      gap:12px;
+    }
+
+    button{
+      appearance:none;
+      border:none;
+      cursor:pointer;
+      border-radius:18px;
+      padding:14px 16px;
+      font:600 14px/1 "Inter",sans-serif;
+      color:white;
+      position:relative;
+      overflow:hidden;
+      transition:transform .18s ease, box-shadow .18s ease, opacity .18s ease;
+      box-shadow:0 10px 20px rgba(0,0,0,.22);
+    }
+
+    button:hover{ transform:translateY(-1px); }
+    button:active{ transform:translateY(0); }
+    button:disabled{ opacity:.6; cursor:not-allowed; }
+
+    .btn-green{ background:linear-gradient(135deg, #22c55e, #16a34a); }
+    .btn-red{ background:linear-gradient(135deg, #ef4444, #dc2626); }
+    .btn-blue{ background:linear-gradient(135deg, #3b82f6, #2563eb); }
+    .btn-gray{ background:linear-gradient(135deg, #475569, #334155); }
+    .btn-amber{ background:linear-gradient(135deg, #f59e0b, #d97706); }
+
+    .status-panel{
+      display:grid;
+      gap:14px;
+    }
+
+    .status-box{
+      padding:16px;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.05);
+      color:#dbe7f3;
+      min-height:62px;
+      display:flex;
+      align-items:center;
+    }
+
+    .ok{ color:#4ade80; }
+    .bad{ color:#f87171; }
+    .warn{ color:#fbbf24; }
+
+    .kv-grid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0,1fr));
+      gap:12px;
+    }
+
+    .mini{
+      padding:14px;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.04);
+    }
+
+    .mini .label{
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:6px;
+    }
+
+    .mini .value{
+      font-size:22px;
+      font-weight:800;
+      letter-spacing:-.03em;
+    }
+
+    pre{
+      margin:0;
+      min-height:420px;
+      max-height:700px;
+      overflow:auto;
+      padding:20px;
+      border-radius:22px;
+      border:1px solid rgba(255,255,255,.10);
+      background:linear-gradient(180deg, rgba(2,6,23,.88), rgba(2,6,23,.66));
+      color:#c7d7ea;
+      font:13px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+    }
+
+    .actions{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0,1fr));
+      gap:12px;
+    }
+
+    .footer-note{
+      margin-top:14px;
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    @media (max-width: 980px){
+      .hero-grid,
+      .layout{
+        grid-template-columns:1fr;
+      }
+    }
+
+    @media (max-width: 640px){
+      .app{ width:min(100% - 20px, 1200px); margin:20px auto; }
+      .hero{ padding:20px; border-radius:24px; }
+      .controls,
+      .actions,
+      .kv-grid{
+        grid-template-columns:1fr;
+      }
+      h1{ font-size:34px; }
+      .hero-stat-value{ font-size:32px; }
+      .card{ padding:16px; }
+      pre{ min-height:320px; }
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <h1>Bot Control Panel</h1>
-    <p>Use this page to control your Cloudflare Worker bot.</p>
+  <div class="app">
+    <section class="hero glass">
+      <div class="eyebrow"><span class="dot"></span> LiveBot Control Surface</div>
+      <h1>Realtime Worker Command Center</h1>
+      <p class="sub">
+        A modern control layer for your Cloudflare Worker. Toggle master power, signal generation,
+        validation flow, inspect KV activity, and test endpoint connectivity in a single glass dashboard.
+      </p>
 
-    <div class="card">
-      <h2>Master Control</h2>
-      <div class="row">
-        <button class="green" onclick="callApi('/on')">Turn ON</button>
-        <button class="red" onclick="callApi('/off')">Turn OFF</button>
-      </div>
-    </div>
+      <div class="hero-grid">
+        <div class="hero-stat glass">
+          <div class="hero-stat-label">Worker endpoint</div>
+          <div class="hero-stat-value" id="workerHost">livebot.themrmillion.workers.dev</div>
+          <div class="hero-stat-mini">
+            <div class="chip">Cloudflare Worker</div>
+            <div class="chip">KV-backed control</div>
+            <div class="chip">Realtime status</div>
+          </div>
+        </div>
 
-    <div class="card">
-      <h2>Generation Control</h2>
-      <div class="row">
-        <button class="green" onclick="callApi('/generation-on')">Generation ON</button>
-        <button class="red" onclick="callApi('/generation-off')">Generation OFF</button>
+        <div class="hero-stat glass">
+          <div class="hero-stat-label">Connection state</div>
+          <div class="hero-stat-value" id="connectionState">Idle</div>
+          <div class="hero-stat-mini">
+            <div class="chip" id="requestMode">GET API</div>
+            <div class="chip" id="corsState">CORS pending</div>
+          </div>
+        </div>
       </div>
-    </div>
+    </section>
 
-    <div class="card">
-      <h2>Validation Control</h2>
-      <div class="row">
-        <button class="green" onclick="callApi('/validation-on')">Validation ON</button>
-        <button class="red" onclick="callApi('/validation-off')">Validation OFF</button>
-      </div>
-    </div>
+    <section class="layout">
+      <div class="stack">
+        <div class="glass card">
+          <h2>Master Power</h2>
+          <p class="meta">Globally enable or disable the scheduler.</p>
+          <div class="controls">
+            <button class="btn-green" onclick="callApi('/on')">Turn ON</button>
+            <button class="btn-red" onclick="callApi('/off')">Turn OFF</button>
+          </div>
+        </div>
 
-    <div class="card">
-      <h2>Status</h2>
-      <div class="row">
-        <button class="blue" onclick="loadStatus()">Refresh Status</button>
+        <div class="glass card">
+          <h2>Generation Engine</h2>
+          <p class="meta">Control new cycle generation independently.</p>
+          <div class="controls">
+            <button class="btn-green" onclick="callApi('/generation-on')">Generation ON</button>
+            <button class="btn-red" onclick="callApi('/generation-off')">Generation OFF</button>
+          </div>
+        </div>
+
+        <div class="glass card">
+          <h2>Validation Engine</h2>
+          <p class="meta">Control validation without touching generation.</p>
+          <div class="controls">
+            <button class="btn-green" onclick="callApi('/validation-on')">Validation ON</button>
+            <button class="btn-red" onclick="callApi('/validation-off')">Validation OFF</button>
+          </div>
+        </div>
+
+        <div class="glass card">
+          <h2>Ops Actions</h2>
+          <p class="meta">Run checks and diagnostics.</p>
+          <div class="actions">
+            <button class="btn-blue" onclick="loadStatus()">Refresh Status</button>
+            <button class="btn-gray" onclick="callApi('/run-now')">Run Scheduler Now</button>
+            <button class="btn-amber" onclick="callApi('/test-telegram')">Test Telegram</button>
+            <button class="btn-blue" onclick="callApi('/debug-payout')">Debug Payout</button>
+          </div>
+          <div class="footer-note">If you still see “Failed to fetch”, the worker needs the CORS patch below.</div>
+        </div>
       </div>
-      <div id="statusText" class="status-box">No status loaded yet.</div>
-      <pre id="output">Waiting...</pre>
-    </div>
+
+      <div class="stack">
+        <div class="glass card">
+          <h2>Live Status</h2>
+          <p class="meta">Current response summary from your worker.</p>
+
+          <div class="status-panel">
+            <div id="statusText" class="status-box">No status loaded yet.</div>
+
+            <div class="kv-grid">
+              <div class="mini">
+                <div class="label">Cycles in KV</div>
+                <div class="value" id="cycleCount">--</div>
+              </div>
+              <div class="mini">
+                <div class="label">Last request</div>
+                <div class="value" id="lastAction">--</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <pre id="output">Waiting...</pre>
+      </div>
+    </section>
   </div>
 
   <script>
     const BASE_URL = "https://livebot.themrmillion.workers.dev";
 
+    document.getElementById("workerHost").textContent = new URL(BASE_URL).host;
+
+    function setConnectionState(text, tone = "idle") {
+      const el = document.getElementById("connectionState");
+      const cors = document.getElementById("corsState");
+
+      el.textContent = text;
+
+      if (tone === "ok") {
+        cors.textContent = "CORS ready";
+        cors.style.color = "#4ade80";
+      } else if (tone === "bad") {
+        cors.textContent = "CORS blocked";
+        cors.style.color = "#f87171";
+      } else if (tone === "busy") {
+        cors.textContent = "Checking";
+        cors.style.color = "#fbbf24";
+      } else {
+        cors.textContent = "CORS pending";
+        cors.style.color = "";
+      }
+    }
+
     async function callApi(path) {
       const output = document.getElementById("output");
       const statusText = document.getElementById("statusText");
+      const lastAction = document.getElementById("lastAction");
 
       output.textContent = "Loading...";
-      statusText.textContent = "Request in progress...";
+      statusText.innerHTML = '<span class="warn">Request in progress...</span>';
+      lastAction.textContent = path;
+      setConnectionState("Requesting...", "busy");
 
       try {
         const res = await fetch(BASE_URL + path, {
-          method: "GET"
+          method: "GET",
+          mode: "cors",
+          headers: {
+            "Accept": "application/json"
+          }
         });
 
         const data = await res.json();
@@ -137,25 +471,36 @@
 
         if (data.ok) {
           statusText.innerHTML = '<span class="ok">Success</span>: ' + path;
+          setConnectionState("Online", "ok");
         } else {
           statusText.innerHTML = '<span class="bad">Failed</span>: ' + path;
+          setConnectionState("API Error", "bad");
         }
       } catch (err) {
         output.textContent = String(err);
         statusText.innerHTML = '<span class="bad">Error</span>: ' + String(err);
+        setConnectionState("Fetch Failed", "bad");
       }
     }
 
     async function loadStatus() {
       const output = document.getElementById("output");
       const statusText = document.getElementById("statusText");
+      const cycleCount = document.getElementById("cycleCount");
+      const lastAction = document.getElementById("lastAction");
 
       output.textContent = "Loading status...";
-      statusText.textContent = "Checking worker status...";
+      statusText.innerHTML = '<span class="warn">Checking worker status...</span>';
+      lastAction.textContent = "/status";
+      setConnectionState("Checking...", "busy");
 
       try {
         const res = await fetch(BASE_URL + "/status", {
-          method: "GET"
+          method: "GET",
+          mode: "cors",
+          headers: {
+            "Accept": "application/json"
+          }
         });
 
         const data = await res.json();
@@ -163,15 +508,23 @@
 
         if (data.ok) {
           const totalCycles = Array.isArray(data.cycles) ? data.cycles.length : 0;
+          cycleCount.textContent = totalCycles;
           statusText.innerHTML = `<span class="ok">Worker reachable</span> | cycles in KV: ${totalCycles}`;
+          setConnectionState("Online", "ok");
         } else {
+          cycleCount.textContent = "--";
           statusText.innerHTML = '<span class="bad">Status failed</span>';
+          setConnectionState("API Error", "bad");
         }
       } catch (err) {
         output.textContent = String(err);
+        cycleCount.textContent = "--";
         statusText.innerHTML = '<span class="bad">Error</span>: ' + String(err);
+        setConnectionState("Fetch Failed", "bad");
       }
     }
+
+    loadStatus();
   </script>
 </body>
 </html>
